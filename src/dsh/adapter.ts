@@ -23,6 +23,29 @@ export class AntigravityLlmAdapter {
     return { id: provider, name: 'Google Antigravity' };
   }
 
+  providerRetryPolicy(_provider: string) {
+    return undefined;
+  }
+
+  imageRequestPricing(_provider: string, _model: string) {
+    return undefined;
+  }
+
+  imageRequestTarget(_provider: string, _model: string, image: { width: number; height: number; bytes: number }) {
+    return {
+      width: image.width,
+      height: image.height,
+      maxBytes: image.bytes,
+    };
+  }
+
+  async prepareCall(provider: string, model: string, signal?: AbortSignal) {
+    return {
+      model: await this.resolveModel(provider, model, signal),
+      stream: (options: any) => this.stream(options),
+    };
+  }
+
   listModels(provider: string): Promise<any[]> {
     return Promise.resolve(
       ANTIGRAVITY_DSH_MODELS.map((m) => ({
