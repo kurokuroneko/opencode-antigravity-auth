@@ -1,0 +1,7 @@
+# opencode-antigravity-auth / dsh-llm-antigravity bundle patch
+- insert:
+    - id: dsh-llm-antigravity
+      name: opencode-antigravity-auth
+      inject: [llm]
+      config:
+        enabled: true
