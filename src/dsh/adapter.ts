@@ -40,18 +40,17 @@ export class AntigravityLlmAdapter {
     const contextWindow = hit ? hit.contextWindow : 1048576;
     const maxOutputTokens = hit ? hit.maxOutputTokens : 65536;
 
-    const efforts = hit?.reasoningEfforts
-      ? Object.entries(hit.reasoningEfforts).map(([id, effortName]) => ({
-          id,
-          name: effortName,
-        }))
-      : [
-          { id: 'off', name: 'Off' },
-          { id: 'low', name: 'Low' },
-          { id: 'medium', name: 'Medium' },
-          { id: 'high', name: 'High' },
-          { id: 'max', name: 'Max' },
-        ];
+    const reasoning = hit?.reasoningEfforts
+      ? {
+          efforts: Object.entries(hit.reasoningEfforts).map(([id, effortName]) => ({
+            id,
+            name: effortName,
+          })),
+          defaultEffort: Object.keys(hit.reasoningEfforts).includes('high')
+            ? 'high'
+            : Object.keys(hit.reasoningEfforts)[0],
+        }
+      : undefined;
 
     return Promise.resolve({
       provider,
@@ -60,10 +59,7 @@ export class AntigravityLlmAdapter {
       context: { contextWindow },
       defaultMaxTokens: maxOutputTokens,
       inputModalities: hit?.inputModalities ?? ['text', 'image'],
-      reasoning: {
-        efforts,
-        defaultEffort: 'high',
-      },
+      ...(reasoning ? { reasoning } : {}),
     });
   }
 
