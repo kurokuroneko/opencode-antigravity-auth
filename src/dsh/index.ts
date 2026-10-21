@@ -13,27 +13,22 @@ export interface AntigravityPluginConfig {
 }
 
 export function apply(ctx: any, config: AntigravityPluginConfig = {}) {
-  let adapter: AntigravityLlmAdapter | null = null;
+  const adapter = new AntigravityLlmAdapter();
 
-  ctx.on('ready', async () => {
-    const accountManager = await AccountManager.loadFromDisk();
-    adapter = new AntigravityLlmAdapter(accountManager);
+  if (typeof ctx.llm?.registerConfigurableProviders === 'function') {
+    ctx.llm.registerConfigurableProviders([
+      {
+        provider: 'antigravity',
+        displayName: 'Google Antigravity',
+        settingsNs: 'dsh-llm-antigravity',
+        settingsPath: [],
+      },
+    ]);
+  }
 
-    if (typeof ctx.llm?.registerAdapter === 'function') {
-      ctx.llm.registerAdapter(['antigravity'], adapter);
-    }
-
-    if (typeof ctx.llm?.registerConfigurableProviders === 'function') {
-      ctx.llm.registerConfigurableProviders([
-        {
-          provider: 'antigravity',
-          displayName: 'Google Antigravity',
-          settingsNs: 'dsh-llm-antigravity',
-          settingsPath: [],
-        },
-      ]);
-    }
-  });
+  if (typeof ctx.llm?.registerAdapter === 'function') {
+    ctx.llm.registerAdapter(['antigravity'], adapter);
+  }
 
   // Provide CLI login helper for DSH
   if (ctx.command) {

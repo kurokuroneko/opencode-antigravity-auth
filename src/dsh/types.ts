@@ -36,8 +36,10 @@ export type DshLlmChunk =
   | { type: 'finish'; finishReason: string; usage?: { inputTokens: number; outputTokens: number } };
 
 export interface DshModelInfo {
+  provider?: string;
   id: string;
   name: string;
+  description?: string;
   contextWindow: number;
   maxOutputTokens: number;
   inputModalities?: string[];

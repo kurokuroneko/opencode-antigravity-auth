@@ -17,29 +17,54 @@ import type {
 } from './types';
 
 export class AntigravityLlmAdapter {
-  constructor(private accountManager: AccountManager) {}
+  constructor(private accountManager?: AccountManager) {}
 
   providerInfo(provider: string) {
     return { id: provider, name: 'Google Antigravity' };
   }
 
-  listModels(_provider: string): Promise<DshModelInfo[]> {
-    return Promise.resolve(ANTIGRAVITY_DSH_MODELS);
+  listModels(provider: string): Promise<any[]> {
+    return Promise.resolve(
+      ANTIGRAVITY_DSH_MODELS.map((m) => ({
+        provider,
+        id: m.id,
+        name: m.name,
+        inputModalities: m.inputModalities ?? ['text', 'image'],
+      }))
+    );
   }
 
-  resolveModel(_provider: string, model: string, _signal?: AbortSignal): Promise<DshModelInfo> {
+  resolveModel(provider: string, model: string, _signal?: AbortSignal): Promise<any> {
     const hit = getDshModel(model);
-    if (!hit) {
-      return Promise.resolve({
-        id: model,
-        name: model,
-        contextWindow: 1048576,
-        maxOutputTokens: 65536,
-        inputModalities: ['text', 'image', 'pdf'],
-        outputModalities: ['text'],
-      });
-    }
-    return Promise.resolve(hit);
+    const name = hit ? hit.name : model;
+    const contextWindow = hit ? hit.contextWindow : 1048576;
+    const maxOutputTokens = hit ? hit.maxOutputTokens : 65536;
+
+    const efforts = hit?.reasoningEfforts
+      ? Object.entries(hit.reasoningEfforts).map(([id, effortName]) => ({
+          id,
+          name: effortName,
+        }))
+      : [
+          { id: 'off', name: 'Off' },
+          { id: 'low', name: 'Low' },
+          { id: 'medium', name: 'Medium' },
+          { id: 'high', name: 'High' },
+          { id: 'max', name: 'Max' },
+        ];
+
+    return Promise.resolve({
+      provider,
+      id: model,
+      name,
+      context: { contextWindow },
+      defaultMaxTokens: maxOutputTokens,
+      inputModalities: hit?.inputModalities ?? ['text', 'image'],
+      reasoning: {
+        efforts,
+        defaultEffort: 'high',
+      },
+    });
   }
 
   private convertMessagesToAntigravity(messages: DshMessage[]) {
@@ -111,12 +136,13 @@ export class AntigravityLlmAdapter {
   }
 
   async *stream(options: DshGenerateOptions): AsyncGenerator<DshLlmChunk, void, unknown> {
+    const accountManager = this.accountManager ?? (await AccountManager.loadFromDisk());
     const family: ModelFamily = options.model.toLowerCase().includes('claude') ? 'claude' : 'gemini';
-    const maxRetries = Math.max(1, this.accountManager.getAccountCount());
+    const maxRetries = Math.max(1, accountManager.getAccountCount());
     let lastError: Error | null = null;
 
     for (let attempt = 0; attempt < maxRetries; attempt++) {
-      const account = this.accountManager.getCurrentOrNextForFamily(family, options.model);
+      const account = accountManager.getCurrentOrNextForFamily(family, options.model);
       if (!account) {
         throw new Error(
           `No usable Google Antigravity account found for ${family}. Please log in via OAuth.`
@@ -142,9 +168,9 @@ export class AntigravityLlmAdapter {
           accessToken = refreshed.access;
           account.access = refreshed.access;
           account.expires = refreshed.expires;
-          this.accountManager.requestSaveToDisk();
+          accountManager.requestSaveToDisk();
         } else {
-          this.accountManager.markRateLimitedWithReason(
+          accountManager.markRateLimitedWithReason(
             account,
             family,
             'antigravity',
@@ -202,7 +228,7 @@ export class AntigravityLlmAdapter {
       }
 
       if (response.status === 429) {
-        this.accountManager.markRateLimitedWithReason(
+        accountManager.markRateLimitedWithReason(
           account,
           family,
           'antigravity',
@@ -226,7 +252,7 @@ export class AntigravityLlmAdapter {
         continue;
       }
 
-      this.accountManager.markRequestSuccess(account);
+      accountManager.markRequestSuccess(account);
 
       if (!response.body) {
         throw new Error('Antigravity returned empty response body');

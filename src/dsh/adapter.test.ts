@@ -42,7 +42,8 @@ describe('AntigravityLlmAdapter', () => {
   it('resolves model info properly', async () => {
     const model = await adapter.resolveModel('antigravity', 'antigravity-gemini-3.8-flash-high');
     expect(model.name).toContain('Gemini 3.8 Flash');
-    expect(model.contextWindow).toBe(1048576);
+    expect(model.context.contextWindow).toBe(1048576);
+    expect(model.provider).toBe('antigravity');
   });
 
   it('streams text and reasoning deltas from mock SSE payload', async () => {
