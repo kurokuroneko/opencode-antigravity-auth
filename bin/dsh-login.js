@@ -1,7 +1,8 @@
 #!/usr/bin/env node
 import { authorizeAntigravity, exchangeAntigravity } from "../dist/src/antigravity/oauth.js";
 import { startOAuthListener } from "../dist/src/plugin/server.js";
-import { saveAccounts, loadAccounts, parseRefreshParts } from "../dist/src/plugin/storage.js";
+import { saveAccounts, loadAccounts } from "../dist/src/plugin/storage.js";
+import { parseRefreshParts } from "../dist/src/plugin/auth.js";
 import { exec } from "node:child_process";
 
 async function openBrowser(url) {
