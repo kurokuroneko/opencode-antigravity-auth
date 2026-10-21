@@ -50,7 +50,8 @@
     "dsh-plugin.json",
     "README.md",
     "LICENSE",
-    "cordis.patch.yml"
+    "cordis.patch.yml",
+    "bin/"
   ],
   "scripts": {
     "build": "tsc -p tsconfig.build.json && node script/fix-esm-imports.mjs",
@@ -63,7 +64,8 @@
     "prepublishOnly": "npm run build",
     "test:e2e:models": "npx tsx script/test-models.ts",
     "test:e2e:regression": "npx tsx script/test-regression.ts",
-    "test:e2e:v2": "node script/test-opencode-v2.mjs"
+    "test:e2e:v2": "node script/test-opencode-v2.mjs",
+    "login": "node bin/dsh-login.js"
   },
   "devDependencies": {
     "@types/node": "^24.10.1",
@@ -99,5 +101,8 @@
     "bundle": {
       "patch": "./cordis.patch.yml"
     }
+  },
+  "bin": {
+    "dsh-antigravity-login": "bin/dsh-login.js"
   }
 }
