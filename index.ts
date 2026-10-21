@@ -1,5 +1,6 @@
 import { AntigravityV2Plugin } from "./src/v2.ts";
 import { AntigravityCLIOAuthPlugin as legacyServer } from "./src/plugin";
+import { name, inject, apply, AntigravityLlmAdapter, ANTIGRAVITY_DSH_MODELS } from "./src/dsh/index.ts";
 
 export {
   AntigravityCLIOAuthPlugin,
@@ -15,5 +16,20 @@ export type {
   AntigravityAuthorization,
   AntigravityTokenExchangeResult,
 } from "./src/antigravity/oauth";
-/** One package entrypoint for OpenCode V2 and V1.18.29+ server plugins. */
-export default { ...AntigravityV2Plugin, server: legacyServer };
+
+export {
+  name,
+  inject,
+  apply,
+  AntigravityLlmAdapter,
+  ANTIGRAVITY_DSH_MODELS,
+};
+
+/** Package entrypoint compatible with DeepSeek Harness (Cordis), OpenCode V2, and OpenCode V1 */
+export default {
+  ...AntigravityV2Plugin,
+  server: legacyServer,
+  name,
+  inject,
+  apply,
+};

@@ -1,0 +1,6 @@
+{
+  "meta": {
+    "title": "Google Antigravity LLM Provider",
+    "description": "Access Gemini 3.8 / 3.1 and Claude 4.6 / 5.5 models using Google Antigravity OAuth credentials with multi-account rotation and extended thinking support"
+  }
+}
